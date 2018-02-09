@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
@@ -139,7 +140,8 @@ public final class IntentFactory {
         File photoFile = null;
         try {
             photoFile = createImageFile(activity);
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            e.printStackTrace();
             return null;
         }
 
@@ -254,6 +256,12 @@ public final class IntentFactory {
         intent.setData(Uri.fromFile(image));
 
         intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+        return intent;
+    }
+
+    public static Intent showLocationServices() {
+        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
         return intent;
     }
 
