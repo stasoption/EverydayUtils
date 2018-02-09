@@ -2,6 +2,7 @@ package com.github.stasoption.util;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -28,25 +29,21 @@ import static android.content.Intent.ACTION_VIEW;
 import static android.content.Intent.EXTRA_SUBJECT;
 import static android.content.Intent.EXTRA_TEXT;
 
-/**
- * @author Nikita Simonov
- */
-
 public final class IntentFactory {
 
     private IntentFactory() {
     }
 
     @NonNull
-    public static Intent callIntent(@NonNull String phone) {
+    public static Intent callPhone(@NonNull String phone) {
         return new Intent(Intent.ACTION_DIAL, Uri.parse(String.format("tel: %s", phone)));
     }
 
-    public static Intent getSendEmailIntent(@Nullable String mailTo, @Nullable String mailCC,
+
+    public static Intent sendEmail(@Nullable String mailTo, @Nullable String mailCC,
                                             @Nullable String subject, @Nullable CharSequence body,
                                             @Nullable File attachment) {
         Intent intent = new Intent(ACTION_SENDTO);
-        // intent.setType("text/plain");
         intent.setType("message/rfc822");
         if (mailTo == null) {
             mailTo = "";
@@ -67,7 +64,7 @@ public final class IntentFactory {
         return intent;
     }
 
-    public static void startRateAppIntent(@NonNull Context context) {
+    public static void rateApp(@NonNull Context context) {
         Uri uri = Uri.parse("market://details?id=" + context.getPackageName());
         Intent myAppLinkToMarket = new Intent(Intent.ACTION_VIEW, uri);
         try {
@@ -78,18 +75,29 @@ public final class IntentFactory {
         }
     }
 
-    public static Intent getSendSMSIntent(String msg) {
+    public static Intent sendSMS(String msg) {
         Intent intent = new Intent(ACTION_VIEW);
         intent.setType("vnd.android-dir/mms-sms");
         intent.putExtra("sms_body", msg);
         return intent;
     }
 
-    public static Intent getOpenUrlIntent(String webAddress) {
+    public static Intent shareText(String subject, String text) {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        if (!TextUtils.isEmpty(subject)) {
+            intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+        }
+        intent.putExtra(Intent.EXTRA_TEXT, text);
+        intent.setType("text/plain");
+        return intent;
+    }
+
+    public static Intent openUrl(String webAddress) {
         return new Intent(ACTION_VIEW, Uri.parse(webAddress));
     }
 
-    public static Intent getDialIntent(String phoneNumber) {
+    public static Intent dialPhone(String phoneNumber) {
         Intent intent = new Intent(Intent.ACTION_DIAL);
         intent.setData(Uri.parse("tel:" + phoneNumber));
         return intent;
@@ -100,7 +108,7 @@ public final class IntentFactory {
     }
 
     @Nullable
-    public static Pair<Intent, String> dispatchTakePictureIntent(@NonNull Activity activity) {
+    public static Pair<Intent, String> dispatchTakePicture(@NonNull Activity activity) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(activity.getPackageManager()) != null) {
             File photoFile = null;
@@ -124,6 +132,142 @@ public final class IntentFactory {
             }
         }
         return null;
+    }
+
+    @Nullable
+    public static Intent photoCapture(@NonNull Activity activity) {
+        File photoFile = null;
+        try {
+            photoFile = createImageFile(activity);
+        } catch (IOException ignored) {
+            return null;
+        }
+
+        Uri uri = Uri.fromFile(photoFile);
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+        return intent;
+    }
+
+    public static Intent openVideo(File file) {
+        return openVideo(Uri.fromFile(file));
+    }
+
+    public static Intent openVideo(String file) {
+        return openVideo(new File(file));
+    }
+
+    public static Intent openVideo(Uri uri) {
+        return openMedia(uri, "video/*");
+    }
+
+
+    public static Intent openAudio(File file) {
+        return openAudio(Uri.fromFile(file));
+    }
+
+    public static Intent openAudio(String file) {
+        return openAudio(new File(file));
+    }
+
+
+    public static Intent openAudio(Uri uri) {
+        return openMedia(uri, "audio/*");
+    }
+
+
+    public static Intent openImage(String file) {
+        return openImage(new File(file));
+    }
+
+
+    public static Intent openImage(File file) {
+        return openImage(Uri.fromFile(file));
+    }
+
+
+    public static Intent openImage(Uri uri) {
+        return openMedia(uri, "image/*");
+    }
+
+
+    public static Intent openText(String file) {
+        return openText(new File(file));
+    }
+
+
+    public static Intent openText(File file) {
+        return openText(Uri.fromFile(file));
+    }
+
+
+    public static Intent openText(Uri uri) {
+        return openMedia(uri, "text/plain");
+    }
+
+    public static Intent pickFile() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("file/*");
+        return intent;
+    }
+
+    public static Intent pickImage() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        return intent;
+    }
+
+    public static boolean isCropAvailable(Context context) {
+        Intent intent = new Intent("com.android.camera.action.CROP");
+        intent.setType("image/*");
+        return isIntentAvailable(context, intent);
+    }
+
+    /**
+     * Crop image. Before using, cropImage requires especial check that differs from
+     * {@link #isIntentAvailable(android.content.Context, android.content.Intent)}
+     * see {@link #isCropAvailable(android.content.Context)} instead
+     *
+     * @param context Application context
+     * @param image   Image that will be used for cropping. This image is not changed during the cropImage
+     * @param outputX Output image width
+     * @param outputY Output image height
+     * @param aspectX Crop frame aspect X
+     * @param aspectY Crop frame aspect Y
+     * @param scale   Scale or not cropped image if output image and cropImage frame sizes differs
+     * @return Intent with <code>data</code>-extra in <code>onActivityResult</code> which contains result as a
+     * {@link android.graphics.Bitmap}. See demo app for details
+     */
+    public static Intent cropImage(Context context, File image, int outputX, int outputY, int aspectX, int aspectY, boolean scale) {
+        Intent intent = new Intent("com.android.camera.action.CROP");
+        intent.setType("image/*");
+
+        List<ResolveInfo> list = context.getPackageManager().queryIntentActivities(intent, 0);
+        ResolveInfo res = list.get(0);
+
+        intent.putExtra("outputX", outputX);
+        intent.putExtra("outputY", outputY);
+        intent.putExtra("aspectX", aspectX);
+        intent.putExtra("aspectY", aspectY);
+        intent.putExtra("scale", scale);
+        intent.putExtra("return-data", true);
+        intent.setData(Uri.fromFile(image));
+
+        intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+        return intent;
+    }
+
+
+    public static boolean isIntentAvailable(Context context, Intent intent) {
+        PackageManager packageManager = context.getPackageManager();
+        List<ResolveInfo> list = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        return list.size() > 0;
+    }
+
+    private static Intent openMedia(Uri uri, String mimeType) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(uri, mimeType);
+        return intent;
     }
 
     @NonNull

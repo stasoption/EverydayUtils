@@ -50,7 +50,7 @@ public final class DateUtils {
      * @param days - count of days for subtraction to time
      * @return result of subtraction time and days
      */
-    public static long substractDays(long time, int days) {
+    public static long subtractDays(long time, int days) {
         return new DateTime(time)
                 .minusDays(days)
                 .getMillis();
@@ -62,30 +62,25 @@ public final class DateUtils {
                 .getMillis();
     }
 
-    public static long getDate(@NonNull String dateText, @NonNull DateTimeFormatter formatter) {
-        return formatter
-                .parseDateTime(dateText)
-                .getMillis();
-    }
-
     public static long getDate(int year, int month, int day) {
-        return new DateTime(year, month, day, 12, 12).getMillis();
-    }
+        try {
+            return new DateTime(year, month, day, 12, 12).getMillis();
+        }catch (RuntimeException e){
+            return 0;
+        }
 
-    public static DateTime getStartOfDay(@NonNull DateTime dateTime) {
-        return dateTime.withMillisOfDay(0);
     }
 
     public static int daysBetween(long start, long end) {
         return daysBetween(new DateTime(start), new DateTime(end));
     }
 
-    public static int daysBetween(DateTime start, DateTime end) {
-        return Days.daysBetween(start, end).getDays();
-    }
-
     public static boolean isDifferentDates(long first, long second) {
         return !format(DD_MM_YYYY, first).equals(format(DD_MM_YYYY, second));
+    }
+
+    private static int daysBetween(DateTime start, DateTime end) {
+        return Days.daysBetween(start, end).getDays();
     }
 
     /**

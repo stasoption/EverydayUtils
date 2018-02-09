@@ -2,6 +2,8 @@ package com.github.stasoption.util;
 
 import android.content.Context;
 import android.location.LocationManager;
+import android.os.Vibrator;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 
@@ -33,5 +35,16 @@ public final class AndroidUtil {
         }
 
         return !(!gps_enabled && !network_enabled);
+    }
+
+
+    public static void vibrate(@Nullable Context context, int duration) {
+        if (context == null) {
+            return;
+        }
+        Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator!=null && vibrator.hasVibrator()) {
+            vibrator.vibrate(duration);
+        }
     }
 }
