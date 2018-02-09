@@ -32,6 +32,12 @@ android {
         }
     }
 
+
+    lintOptions {
+        abortOnError false
+    }
+
+
 }
 
 dependencies {
@@ -57,5 +63,3 @@ publish {
     licences = ['MIT']
     website = 'https://github.com/stasoption/EverydayUtils'
 }
-
-//        ./gradlew clean build bintrayUpload -PbintrayUser=stasoption -PbintrayKey=1f2f269e7a5b50701c5cce09dbd7b0a268e9a6f3 -PdryRun=false
