@@ -24,17 +24,6 @@ The library of utils is often supplemented with useful methods we use daily in o
       }
 ```
 
-**Maven**<br />
-
-```
-      <dependency>
-          <groupId>com.github.stasoption</groupId>
-          <artifactId>everydayUtils</artifactId>
-          <version>1.0.3</version>
-          <type>pom</type>
-      </dependency>
-```
-
 ## License
 
       The MIT License (MIT)
